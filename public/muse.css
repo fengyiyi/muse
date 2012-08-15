@@ -1,0 +1,195 @@
+/* --------------------- */
+/* ------------------------ */
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: relative; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: Helvetica, Arial, sans-serif;
+  overflow: hidden; }
+
+@-webkit-keyframes card-appear {
+  0% {
+    -webkit-transform: translateZ(20px) translateY(-40px);
+    opacity: 0; }
+
+  60% {
+    opacity: 0; }
+
+  100% {
+    -webkit-transform: translateZ(20px) translateY(-40px);
+    opacity: 1; } }
+
+@-webkit-keyframes card-up {
+  0% {
+    -webkit-transform: translateZ(17px); }
+
+  40% {
+    -webkit-transform: translateZ(20px) translateY(-40px); }
+
+  60% {
+    -webkit-transform: translateZ(20px) translateY(-40px); }
+
+  100% {
+    -webkit-transform: translateZ(20px) translateY(-40px) rotateY(180deg); } }
+
+.drawers-cont {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -333px;
+  margin-top: -233px;
+  width: 666px;
+  height: 466px;
+  -webkit-perspective: 600; }
+  .drawers-cont .drawer-chest {
+    width: 666px;
+    height: 466px;
+    -webkit-transform-style: preserve-3d;
+    -webkit-transition: -webkit-transform 1s;
+    -webkit-transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1); }
+    .drawers-cont .drawer-chest.focus .drawer .box-side {
+      border: 1px solid gray; }
+    .drawers-cont .drawer-chest .border {
+      position: absolute;
+      width: 666px;
+      height: 466px;
+      -webkit-transform-style: preserve-3d;
+      -webkit-transform: translateZ(-47px); }
+      .drawers-cont .drawer-chest .border .box-side {
+        display: block;
+        position: absolute; }
+        .drawers-cont .drawer-chest .border .box-side.front {
+          width: 666px;
+          height: 466px;
+          -webkit-transform: rotateX(0deg) translateZ(20px); }
+        .drawers-cont .drawer-chest .border .box-side.back {
+          width: 666px;
+          height: 466px;
+          -webkit-transform: rotateX(180deg) translateZ(20px); }
+        .drawers-cont .drawer-chest .border .box-side.right {
+          left: 313px;
+          width: 40px;
+          height: 466px;
+          -webkit-transform: rotateY(90deg) translateZ(333px); }
+        .drawers-cont .drawer-chest .border .box-side.left {
+          left: 313px;
+          width: 40px;
+          height: 466px;
+          -webkit-transform: rotateY(-90deg) translateZ(333px); }
+        .drawers-cont .drawer-chest .border .box-side.top {
+          top: 213px;
+          width: 666px;
+          height: 40px;
+          -webkit-transform: rotateX(90deg) translateZ(233px); }
+        .drawers-cont .drawer-chest .border .box-side.bottom {
+          top: 213px;
+          width: 666px;
+          height: 40px;
+          -webkit-transform: rotateX(-90deg) translateZ(233px); }
+      .drawers-cont .drawer-chest .border .box-side {
+        border: 1px solid gray;
+        background: #efefef;
+        opacity: 0.7; }
+        .drawers-cont .drawer-chest .border .box-side.front {
+          display: none; }
+    .drawers-cont .drawer-chest .drawer {
+      position: absolute;
+      width: 60px;
+      height: 40px;
+      -webkit-transform-style: preserve-3d;
+      -webkit-transform: translateZ(-47px);
+      -webkit-transition: -webkit-transform 1s; }
+      .drawers-cont .drawer-chest .drawer .box-side {
+        display: block;
+        position: absolute; }
+        .drawers-cont .drawer-chest .drawer .box-side.front {
+          width: 60px;
+          height: 40px;
+          -webkit-transform: rotateX(0deg) translateZ(20px); }
+        .drawers-cont .drawer-chest .drawer .box-side.back {
+          width: 60px;
+          height: 40px;
+          -webkit-transform: rotateX(180deg) translateZ(20px); }
+        .drawers-cont .drawer-chest .drawer .box-side.right {
+          left: 10px;
+          width: 40px;
+          height: 40px;
+          -webkit-transform: rotateY(90deg) translateZ(30px); }
+        .drawers-cont .drawer-chest .drawer .box-side.left {
+          left: 10px;
+          width: 40px;
+          height: 40px;
+          -webkit-transform: rotateY(-90deg) translateZ(30px); }
+        .drawers-cont .drawer-chest .drawer .box-side.top {
+          top: 0px;
+          width: 60px;
+          height: 40px;
+          -webkit-transform: rotateX(90deg) translateZ(20px); }
+        .drawers-cont .drawer-chest .drawer .box-side.bottom {
+          top: 0px;
+          width: 60px;
+          height: 40px;
+          -webkit-transform: rotateX(-90deg) translateZ(20px); }
+      .drawers-cont .drawer-chest .drawer .box-side {
+        border: 1px solid gray;
+        background: #efefef;
+        opacity: 0.5; }
+        .drawers-cont .drawer-chest .drawer .box-side.top {
+          display: none; }
+        .drawers-cont .drawer-chest .drawer .box-side.front {
+          opacity: 0.3; }
+      .drawers-cont .drawer-chest .drawer .card {
+        position: absolute;
+        top: 1px;
+        bottom: 1px;
+        left: 1px;
+        right: 1px;
+        -webkit-transform: translateZ(17px);
+        -webkit-transform-style: preserve-3d; }
+        .drawers-cont .drawer-chest .drawer .card .card-side {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          -webkit-backface-visibility: hidden; }
+          .drawers-cont .drawer-chest .drawer .card .card-side.front {
+            background-image: url("img/dc1.jpg"); }
+          .drawers-cont .drawer-chest .drawer .card .card-side.back {
+            -webkit-transform: rotateY(180deg);
+            background: white;
+            font-size: 7px;
+            border: 1px solid gray;
+            overflow: hidden; }
+            .drawers-cont .drawer-chest .drawer .card .card-side.back textarea {
+              margin: 0;
+              width: 100%;
+              height: 100%;
+              border: none;
+              resize: none;
+              padding: 5px;
+              font-size: 10px; }
+      .drawers-cont .drawer-chest .drawer.open {
+        -webkit-transform: translateZ(-20px);
+        -webkit-transition: -webkit-transform 1s 0s;
+        z-index: 5; }
+        .drawers-cont .drawer-chest .drawer.open .card.new {
+          -webkit-animation: card-appear 2s;
+          -webkit-animation-fill-mode: forwards; }
+        .drawers-cont .drawer-chest .drawer.open .card.normal {
+          -webkit-animation: card-up 2s;
+          -webkit-animation-fill-mode: forwards; }
+
+.edit-cont {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -333px;
+  margin-top: -233px;
+  width: 666px;
+  height: 466px; }
