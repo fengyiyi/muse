@@ -1,4 +1,4 @@
-$number: 10;
+$number: 14;
 $scale: 1;
 $drawerWidth: 60px * $scale;
 $drawerHeight: 40px * $scale;
@@ -150,6 +150,40 @@ html, body {
       }
     }
 
+    .sep {
+      position: absolute;
+      background: #ccc;
+      -webkit-transform-origin: left top;
+
+      &.vertical {
+        height: $totalOuterHeight;
+        width: $drawerDepth;
+        -webkit-transform: translateZ(-($openDepth+2)) rotateY(90deg);
+      }
+
+      &.horizontal {
+        height: $drawerDepth;
+        width: $drawerWidth;
+        -webkit-transform: translateZ(-($openDepth+2)) rotateX(-90deg);
+      }
+    }
+
+    .fronts {
+      position: absolute;
+      background: #ccc;
+      -webkit-transform: translateZ(-($openDepth+1));
+
+      &.vertical {
+        height: $totalOuterHeight;
+        width: $gap;
+      }
+
+      &.horizontal {
+        height: $gap;
+        width: $drawerWidth;
+      }
+    }
+
     .drawer {
       position: absolute;
       @include box-3d($drawerWidth, $drawerHeight, $drawerDepth);
@@ -159,7 +193,6 @@ html, body {
       .box-side {
         border: #{$scale}px solid gray;
         background: #efefef;
-        opacity: 0.5;
 
         &.top {
           display: none;

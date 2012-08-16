@@ -3,7 +3,7 @@ window.console ?= {
   error: -> return
 }
 
-number = 10
+number = 14
 scale = 1
 drawerWidth = 60 * scale
 drawerHeight = 40 * scale
@@ -109,7 +109,7 @@ make_cards = (box) ->
     .data((d) -> if d then cross({card: drawerState[d].cards, pos:[drawerPos[d]]}) else [])
 
   animEnd = ->
-    d3.select(this).attr('class', 'card normal')
+    #d3.select(this).attr('class', 'card normal')
     return
 
   cardEnter = card.enter().append('div').attr('class', 'card new')
@@ -134,9 +134,36 @@ drawersCont = d3.select('.drawers-cont')
 drawerChest = drawersCont.append('div')
   .attr('class', 'drawer-chest')
 
-drawerChest.append('div')
-  .attr('class', 'border')
-  .call(make_box)
+# drawerChest.append('div')
+#   .attr('class', 'border')
+#   .call(make_box)
+
+drawerChest.selectAll('div.sep.vertical').data(d3.range(number+1))
+  .enter().append('div')
+    .attr('class', 'sep vertical')
+    .style('left', (ix) -> ix * (drawerWidth  + gap) + gap/2 + 'px')
+
+# drawerChest.selectAll('div.sep.horizontal').data(d3.range(number+1))
+#   .enter().append('div')
+#     .attr('class', 'sep horizontal')
+#     .style('top',  (iy) -> iy * (drawerHeight + gap) + gap/2 + 'px')
+
+drawerChest.selectAll('div.sep.horizontal').data(cross(x:d3.range(number), y:d3.range(number+1)))
+  .enter().append('div')
+    .attr('class', 'sep horizontal')
+    .style('left', (d) -> d.x * (drawerWidth  + gap) + gap + 'px')
+    .style('top',  (d) -> d.y * (drawerHeight + gap) + gap/2 + 'px')
+
+drawerChest.selectAll('div.fronts.vertical').data(d3.range(number+1))
+  .enter().append('div')
+    .attr('class', 'fronts vertical')
+    .style('left', (ix) -> ix * (drawerWidth  + gap) + 'px')
+
+drawerChest.selectAll('div.fronts.horizontal').data(cross(x:d3.range(number), y:d3.range(number+1)))
+  .enter().append('div')
+    .attr('class', 'fronts horizontal')
+    .style('left', (d) -> d.x * (drawerWidth  + gap) + gap + 'px')
+    .style('top',  (d) -> d.y * (drawerHeight + gap) + 'px')
 
 drawerClassFn = (d) ->
   return [

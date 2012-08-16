@@ -43,14 +43,14 @@ html, body {
   position: absolute;
   top: 50%;
   left: 50%;
-  margin-left: -333px;
-  margin-top: -233px;
-  width: 666px;
-  height: 466px;
+  margin-left: -465px;
+  margin-top: -325px;
+  width: 930px;
+  height: 650px;
   -webkit-perspective: 600; }
   .drawers-cont .drawer-chest {
-    width: 666px;
-    height: 466px;
+    width: 930px;
+    height: 650px;
     -webkit-transform-style: preserve-3d;
     -webkit-transition: -webkit-transform 1s;
     -webkit-transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1); }
@@ -58,47 +58,69 @@ html, body {
       border: 1px solid gray; }
     .drawers-cont .drawer-chest .border {
       position: absolute;
-      width: 666px;
-      height: 466px;
+      width: 930px;
+      height: 650px;
       -webkit-transform-style: preserve-3d;
       -webkit-transform: translateZ(-47px); }
       .drawers-cont .drawer-chest .border .box-side {
         display: block;
         position: absolute; }
         .drawers-cont .drawer-chest .border .box-side.front {
-          width: 666px;
-          height: 466px;
+          width: 930px;
+          height: 650px;
           -webkit-transform: rotateX(0deg) translateZ(20px); }
         .drawers-cont .drawer-chest .border .box-side.back {
-          width: 666px;
-          height: 466px;
+          width: 930px;
+          height: 650px;
           -webkit-transform: rotateX(180deg) translateZ(20px); }
         .drawers-cont .drawer-chest .border .box-side.right {
-          left: 313px;
+          left: 445px;
           width: 40px;
-          height: 466px;
-          -webkit-transform: rotateY(90deg) translateZ(333px); }
+          height: 650px;
+          -webkit-transform: rotateY(90deg) translateZ(465px); }
         .drawers-cont .drawer-chest .border .box-side.left {
-          left: 313px;
+          left: 445px;
           width: 40px;
-          height: 466px;
-          -webkit-transform: rotateY(-90deg) translateZ(333px); }
+          height: 650px;
+          -webkit-transform: rotateY(-90deg) translateZ(465px); }
         .drawers-cont .drawer-chest .border .box-side.top {
-          top: 213px;
-          width: 666px;
+          top: 305px;
+          width: 930px;
           height: 40px;
-          -webkit-transform: rotateX(90deg) translateZ(233px); }
+          -webkit-transform: rotateX(90deg) translateZ(325px); }
         .drawers-cont .drawer-chest .border .box-side.bottom {
-          top: 213px;
-          width: 666px;
+          top: 305px;
+          width: 930px;
           height: 40px;
-          -webkit-transform: rotateX(-90deg) translateZ(233px); }
+          -webkit-transform: rotateX(-90deg) translateZ(325px); }
       .drawers-cont .drawer-chest .border .box-side {
         border: 1px solid gray;
         background: #efefef;
         opacity: 0.7; }
         .drawers-cont .drawer-chest .border .box-side.front {
           display: none; }
+    .drawers-cont .drawer-chest .sep {
+      position: absolute;
+      background: #ccc;
+      -webkit-transform-origin: left top; }
+      .drawers-cont .drawer-chest .sep.vertical {
+        height: 650px;
+        width: 40px;
+        -webkit-transform: translateZ(-29px) rotateY(90deg); }
+      .drawers-cont .drawer-chest .sep.horizontal {
+        height: 40px;
+        width: 60px;
+        -webkit-transform: translateZ(-29px) rotateX(-90deg); }
+    .drawers-cont .drawer-chest .fronts {
+      position: absolute;
+      background: #ccc;
+      -webkit-transform: translateZ(-28px); }
+      .drawers-cont .drawer-chest .fronts.vertical {
+        height: 650px;
+        width: 6px; }
+      .drawers-cont .drawer-chest .fronts.horizontal {
+        height: 6px;
+        width: 60px; }
     .drawers-cont .drawer-chest .drawer {
       position: absolute;
       width: 60px;
@@ -139,8 +161,7 @@ html, body {
           -webkit-transform: rotateX(-90deg) translateZ(20px); }
       .drawers-cont .drawer-chest .drawer .box-side {
         border: 1px solid gray;
-        background: #efefef;
-        opacity: 0.5; }
+        background: #efefef; }
         .drawers-cont .drawer-chest .drawer .box-side.top {
           display: none; }
         .drawers-cont .drawer-chest .drawer .box-side.front {
@@ -189,7 +210,7 @@ html, body {
   position: absolute;
   top: 50%;
   left: 50%;
-  margin-left: -333px;
-  margin-top: -233px;
-  width: 666px;
-  height: 466px; }
+  margin-left: -465px;
+  margin-top: -325px;
+  width: 930px;
+  height: 650px; }

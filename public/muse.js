@@ -9,7 +9,7 @@
     };
   }
 
-  number = 10;
+  number = 14;
 
   scale = 1;
 
@@ -117,9 +117,7 @@
         return [];
       }
     });
-    animEnd = function() {
-      d3.select(this).attr('class', 'card normal');
-    };
+    animEnd = function() {};
     cardEnter = card.enter().append('div').attr('class', 'card new').on("webkitAnimationEnd", animEnd);
     cardEnter.append('div').attr('class', 'card-side back');
     cardEnter.append('div').attr('class', 'card-side front').style('background-position', function(d) {
@@ -136,7 +134,31 @@
 
   drawerChest = drawersCont.append('div').attr('class', 'drawer-chest');
 
-  drawerChest.append('div').attr('class', 'border').call(make_box);
+  drawerChest.selectAll('div.sep.vertical').data(d3.range(number + 1)).enter().append('div').attr('class', 'sep vertical').style('left', function(ix) {
+    return ix * (drawerWidth + gap) + gap / 2 + 'px';
+  });
+
+  drawerChest.selectAll('div.sep.horizontal').data(cross({
+    x: d3.range(number),
+    y: d3.range(number + 1)
+  })).enter().append('div').attr('class', 'sep horizontal').style('left', function(d) {
+    return d.x * (drawerWidth + gap) + gap + 'px';
+  }).style('top', function(d) {
+    return d.y * (drawerHeight + gap) + gap / 2 + 'px';
+  });
+
+  drawerChest.selectAll('div.fronts.vertical').data(d3.range(number + 1)).enter().append('div').attr('class', 'fronts vertical').style('left', function(ix) {
+    return ix * (drawerWidth + gap) + 'px';
+  });
+
+  drawerChest.selectAll('div.fronts.horizontal').data(cross({
+    x: d3.range(number),
+    y: d3.range(number + 1)
+  })).enter().append('div').attr('class', 'fronts horizontal').style('left', function(d) {
+    return d.x * (drawerWidth + gap) + gap + 'px';
+  }).style('top', function(d) {
+    return d.y * (drawerHeight + gap) + 'px';
+  });
 
   drawerClassFn = function(d) {
     return ['drawer', drawerState[d].open ? 'open' : 'closed', drawerState[d].cards.length ? 'carded' : 'cardless'].join(' ');
@@ -145,18 +167,16 @@
   myDrawer = null;
 
   box_click = function(d) {
-    var md;
     if (myDrawer) {
-      md = myDrawer.__data__;
-      drawerState[md].open = false;
+      drawerState[myDrawer].open = false;
       if (typeof notify_change === "function") {
-        notify_change(md);
+        notify_change(myDrawer);
       }
     }
-    if (myDrawer === this) {
+    if (myDrawer === d) {
       myDrawer = null;
     } else {
-      myDrawer = this;
+      myDrawer = d;
       drawerState[d].open = true;
       if (drawerState[d].open && drawerState[d].cards.length === 0) {
         drawerState[d].cards.push(msgs[Math.floor(Math.random() * msgs.length)]);
