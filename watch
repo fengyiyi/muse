@@ -1,0 +1,4 @@
+#!/bin/bash
+sass --watch public/muse.scss:public/muse.css &
+coffee -cw public/muse.coffee &
+coffee -cw app.coffee &
