@@ -204,7 +204,7 @@
 
   if (window.io) {
     console.log('IO detected');
-    socket = io.connect('http://localhost:8181');
+    socket = io.connect();
     socket.on('connect', function() {
       socket.emit('addClient', 'dc');
     });
