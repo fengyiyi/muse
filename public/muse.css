@@ -214,3 +214,19 @@ html, body {
   margin-top: -325px;
   width: 930px;
   height: 650px; }
+
+.loading-cont {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.8); }
+  .loading-cont .msg {
+    font-size: 40px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    top: 50%;
+    margin-top: -23px; }

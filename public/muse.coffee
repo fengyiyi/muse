@@ -46,7 +46,6 @@ msgs = msgs.split('-----')
 
 drawers = []
 drawerPos = {}
-drawerState = {}
 for ix in [0...number]
   for iy in [0...number]
     id = "#{ix}_#{iy}"
@@ -54,10 +53,17 @@ for ix in [0...number]
     x = ix * (drawerWidth  + gap) + gap
     y = iy * (drawerHeight + gap) + gap
     drawerPos[id] = { ix, iy, x, y }
-    drawerState[id] = {
+
+
+drawerState = {}
+resetDrawerState = ->
+  for d in drawers
+    drawerState[d] = {
       open: false
       cards: []
     }
+  return
+resetDrawerState()
 
 drawers.sort (da, db) ->
   np1o2 = (number+1)
@@ -212,6 +218,14 @@ update_drawers()
 editCont = d3.select('.edit-cont')
   .style('display', 'none')
 
+hideLoading = ->
+  d3.select('.loading-cont')
+    .style('opacity', 1)
+    .transition()
+    .duration(1000)
+      .style('opacity', 0)
+      .remove()
+
 # -------------------------------------------------------
 # -------------------------------------------------------
 
@@ -229,6 +243,7 @@ if window.io
     for k,v of dr
       drawerState[k] = v or { open: false, cards: [] }
     update_drawers()
+    hideLoading()
     return
 
   socket.on 'drawerChange', (drawer, state) ->
@@ -240,6 +255,12 @@ if window.io
         return
     return
 
+  socket.on 'reset', ->
+    console.log 'GOT reset'
+    resetDrawerState()
+    update_drawers()
+    return
+
   notify_change = (d) ->
     socket.emit('drawerChange', d, drawerState[d])
     return
@@ -248,3 +269,7 @@ else
 
   for d in drawers
     d.cards = if Math.random() > 0.85 then [msgs[Math.floor(Math.random() * msgs.length)]] else []
+
+  hideLoading()
+
+

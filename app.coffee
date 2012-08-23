@@ -56,13 +56,16 @@ app = http.createServer (req, res) ->
 
   if req.url is '/'
     res.statusCode = 302
-    res.setHeader('Location', '/dc')
-    res.end('Redirecting to /dc')
-  else if match = req.url.match(/^\/(\w+)$/)
+    res.setHeader('Location', '/DC')
+    res.end('Redirecting to /DC')
+  else if match = req.url.match(/^\/([a-z]+)$/i)
     send(req, 'index.html')
       .root('public')
       .on('error', error)
       .pipe(res)
+  else if req.url is '/_archive'
+    archive()
+    res.end('A reset has been sent')
   else
     send(req, req.url)
       .root('public')
@@ -97,3 +100,25 @@ io.sockets.on 'connection', (socket) ->
     return
 
   return
+
+archive = ->
+  for locationName, location of locations
+    location.drawers = {}
+    location.dirty = true
+  io.sockets.emit('reset')
+  return
+
+# cron job :-)
+offset = -7 # PST
+getDate = -> (new Date(Date.now() + offset * 60 * 60 * 1000)).getUTCDate()
+lastDate = getDate()
+setInterval((->
+  nowDate = getDate()
+  return if lastDate is nowDate
+  archive()
+  lastDate = nowDate
+), 10000)
+
+
+
+
