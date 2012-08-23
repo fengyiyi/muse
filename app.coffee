@@ -1,5 +1,5 @@
 http = require('http')
-paperboy = require('paperboy')
+send = require('send')
 io = require('socket.io')
 fs = require('fs')
 
@@ -43,12 +43,32 @@ setInterval((->
 ), 2000)
 
 app = http.createServer (req, res) ->
-  paperboy
-    .deliver(__dirname + '/public', req, res)
-    .addHeader('X-PaperRoute', 'Node')
-    .before(->
-      console.log('Received Request')
-    )
+  # your custom error-handling logic:
+  error = (err) ->
+    res.statusCode = err.status or 500
+    res.end(err.message)
+
+  # your custom directory handling logic:
+  redirect = ->
+    res.statusCode = 301;
+    res.setHeader('Location', req.url + '/')
+    res.end('Redirecting to ' + req.url + '/')
+
+  if req.url is '/'
+    res.statusCode = 302
+    res.setHeader('Location', '/dc')
+    res.end('Redirecting to /dc')
+  else if match = req.url.match(/^\/(\w+)$/)
+    send(req, 'index.html')
+      .root('public')
+      .on('error', error)
+      .pipe(res)
+  else
+    send(req, req.url)
+      .root('public')
+      .on('error', error)
+      .pipe(res)
+
   return
 
 io = io.listen(app)
