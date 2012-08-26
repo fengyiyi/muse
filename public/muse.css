@@ -1,4 +1,5 @@
-/* --------------------- */
+/* ------------------------ */
+/* ------------------------ */
 /* ------------------------ */
 * {
   -webkit-box-sizing: border-box;
@@ -16,14 +17,9 @@ html, body {
 
 @-webkit-keyframes card-appear {
   0% {
-    -webkit-transform: translateZ(20px) translateY(-40px);
-    opacity: 0; }
-
-  60% {
     opacity: 0; }
 
   100% {
-    -webkit-transform: translateZ(20px) translateY(-40px);
     opacity: 1; } }
 
 @-webkit-keyframes card-up {
@@ -183,7 +179,7 @@ html, body {
             background-image: url("img/dc1.jpg"); }
           .drawers-cont .drawer-chest .drawer .card .card-side.back {
             -webkit-transform: rotateY(180deg);
-            background: white;
+            background: #fffff6;
             font-size: 7px;
             border: 1px solid gray;
             overflow: hidden; }
@@ -199,12 +195,12 @@ html, body {
         -webkit-transform: translateZ(-20px);
         -webkit-transition: -webkit-transform 1s 0s;
         z-index: 5; }
-        .drawers-cont .drawer-chest .drawer.open .card.new {
-          -webkit-animation: card-appear 2s;
-          -webkit-animation-fill-mode: forwards; }
-        .drawers-cont .drawer-chest .drawer.open .card.normal {
-          -webkit-animation: card-up 2s;
-          -webkit-animation-fill-mode: forwards; }
+        .drawers-cont .drawer-chest .drawer.open .card {
+          -webkit-animation: card-up 1s linear 1s;
+          -webkit-animation-fill-mode: both; }
+          .drawers-cont .drawer-chest .drawer.open .card.new {
+            -webkit-animation: card-up 1s linear 1s, card-appear 1s linear 1s;
+            -webkit-animation-fill-mode: both; }
 
 .edit-cont {
   position: absolute;
@@ -214,6 +210,27 @@ html, body {
   margin-top: -325px;
   width: 930px;
   height: 650px; }
+  .edit-cont .writer {
+    position: absolute;
+    border: 1px solid gray;
+    background: #fffff6; }
+    .edit-cont .writer textarea {
+      position: absolute;
+      background: inherit;
+      resize: none;
+      margin: 0;
+      border: none;
+      border-bottom: 1px solid gray;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 30px;
+      padding: 10px; }
+    .edit-cont .writer button {
+      position: absolute;
+      bottom: 5px;
+      margin: 0;
+      right: 5px; }
 
 .loading-cont {
   position: absolute;

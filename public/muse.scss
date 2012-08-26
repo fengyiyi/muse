@@ -6,12 +6,16 @@ $drawerDepth: 40px * $scale;
 $openDepth: 27px * $scale;
 $gap: 6px * $scale;
 
-/* --------------------- */
+/* ------------------------ */
 
 $totalInnerWidth:  ($drawerWidth  + $gap) * ($number - 1);
 $totalInnerHeight: ($drawerHeight + $gap) * ($number - 1);
 $totalOuterWidth:  $totalInnerWidth  + $drawerWidth  + $gap*2;
 $totalOuterHeight: $totalInnerHeight + $drawerHeight + $gap*2;
+
+/* ------------------------ */
+
+$cardColor: #fffff6;
 
 /* ------------------------ */
 
@@ -87,23 +91,16 @@ html, body {
   overflow: hidden;
 }
 
-@-webkit-keyframes card-appear
-{
+@-webkit-keyframes card-appear {
   0% {
-    -webkit-transform: translateZ($drawerDepth/2) translateY(-$drawerHeight);
-    opacity: 0;
-  }
-  60% {
     opacity: 0;
   }
   100% {
-    -webkit-transform: translateZ($drawerDepth/2) translateY(-$drawerHeight);
     opacity: 1;
   }
 }
 
-@-webkit-keyframes card-up
-{
+@-webkit-keyframes card-up {
   0% {
     -webkit-transform: translateZ($drawerDepth/2 - 3px);
   }
@@ -117,7 +114,6 @@ html, body {
     -webkit-transform: translateZ($drawerDepth/2) translateY(-$drawerHeight) rotateY(180deg);
   }
 }
-
 
 .drawers-cont {
   @include center-xy($totalOuterWidth, $totalOuterHeight);
@@ -224,7 +220,7 @@ html, body {
 
           &.back {
             -webkit-transform: rotateY(180deg);
-            background: white;
+            background: $cardColor;
             font-size: 7px;
             border: 1px solid gray;
             overflow: hidden;
@@ -248,14 +244,13 @@ html, body {
         z-index: 5;
 
         .card {
-          &.new {
-            -webkit-animation: card-appear 2s;
-            -webkit-animation-fill-mode: forwards;
-          }
+          -webkit-animation: card-up 1s linear 1s;
+          -webkit-animation-fill-mode: both;
 
-          &.normal {
-            -webkit-animation: card-up 2s;
-            -webkit-animation-fill-mode: forwards;
+          &.new {
+            -webkit-animation: card-up 1s linear 1s,
+                               card-appear 1s linear 1s;
+            -webkit-animation-fill-mode: both;
           }
         }
       }
@@ -265,6 +260,33 @@ html, body {
 
 .edit-cont {
   @include center-xy($totalOuterWidth, $totalOuterHeight);
+
+  .writer {
+    position: absolute;
+    border: 1px solid gray;
+    background: $cardColor;
+
+    textarea {
+      position: absolute;
+      background: inherit;
+      resize: none;
+      margin: 0;
+      border: none;
+      border-bottom: 1px solid gray;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 30px;
+      padding: 10px;
+    }
+
+    button {
+      position: absolute;
+      bottom: 5px;
+      margin: 0;
+      right: 5px;
+    }
+  }
 }
 
 .loading-cont {

@@ -11,6 +11,14 @@ drawerDepth = 40 * scale
 openDepth = 27 * scale
 gap = 6 * scale
 
+writerWidth = 600;
+writerHeight = 400;
+
+$totalInnerWidth =  (drawerWidth  + gap) * (number - 1);
+$totalInnerHeight = (drawerHeight + gap) * (number - 1);
+$totalOuterWidth =  $totalInnerWidth  + drawerWidth  + gap*2;
+$totalOuterHeight = $totalInnerHeight + drawerHeight + gap*2;
+
 # --------------------------
 
 msgs = "
@@ -103,6 +111,7 @@ cross = (arrays) ->
   return ret
 
 
+next = (fn) -> setTimeout(fn, 100)
 
 make_box = (box) ->
   faces = ['front', 'back', 'right', 'left', 'top', 'bottom']
@@ -115,7 +124,9 @@ make_cards = (box) ->
     .data((d) -> if d then cross({card: drawerState[d].cards, pos:[drawerPos[d]]}) else [])
 
   animEnd = ->
-    #d3.select(this).attr('class', 'card normal')
+    el = d3.select(this)
+    next ->
+      el.attr('class', 'card')
     return
 
   cardEnter = card.enter().append('div').attr('class', 'card new')
@@ -183,7 +194,7 @@ myDrawer = null
 box_click = (d) ->
   if myDrawer
     drawerState[myDrawer].open = false
-    notify_change?(myDrawer)
+    notifyChange(myDrawer)
 
   if myDrawer is d
     myDrawer = null
@@ -193,10 +204,14 @@ box_click = (d) ->
     #drawerChest.attr('class', "drawer-chest focus focus-x#{d.ix}y#{d.iy}")
     drawerState[d].open = true
     if drawerState[d].open and drawerState[d].cards.length is 0
-      drawerState[d].cards.push(msgs[Math.floor(Math.random() * msgs.length)])
-    notify_change?(d)
+      drawerState[d].cards.push('')
 
-  update_drawers()
+    if drawerState[d].open
+      makeWriter(d)
+
+    notifyChange(d)
+
+  updateDrawers()
   return
 
 drawerChest.selectAll('div.drawer').data(drawers)
@@ -207,16 +222,68 @@ drawerChest.selectAll('div.drawer').data(drawers)
   .on('click', box_click)
   .call(make_box)
 
-update_drawers = ->
+updateDrawers = ->
   drawerChest.selectAll('div.drawer')
     .attr('class', drawerClassFn)
     .call(make_cards)
   return
 
-update_drawers()
+updateDrawers()
 
-editCont = d3.select('.edit-cont')
-  .style('display', 'none')
+makeWriter = closeWriter = null
+do ->
+  writerDrawer = null
+  makeWriter = (drawer, delay = 2000) ->
+    setTimeout((->
+      editCont.style('display', null)
+      writerDrawer = drawer
+      editor.property('value', drawerState[writerDrawer].cards[0])
+      writer
+        .style('left', (d) -> drawerPos[writerDrawer].x + 'px')
+        .style('top',  (d) -> (drawerPos[writerDrawer].y - drawerHeight) + 'px')
+        .style('width', drawerWidth + 'px')
+        .style('height', drawerHeight + 'px')
+        .style('border-radius', '0px')
+        .transition()
+          .duration(1000)
+          .delay(500)
+          .style('left', ($totalOuterWidth - writerWidth)/2 + 'px')
+          .style('top',  ($totalOuterHeight - writerHeight)/2 + 'px')
+          .style('width', writerWidth + 'px')
+          .style('height', writerHeight + 'px')
+          .style('border-radius', '3px')
+    ), delay)
+    return
+
+  closeWriter = ->
+    console.log 'closeWriter', writerDrawer
+    return unless writerDrawer
+    drawerState[writerDrawer].cards[0] = editor.property('value')
+    notifyChange(writerDrawer)
+    updateDrawers(writerDrawer)
+    editCont.style('display', 'none')
+    writerDrawer = null
+    return
+
+  d3.select(document)
+    .on('click.writer', closeWriter)
+
+  editCont = d3.select('.edit-cont')
+    .style('display', 'none')
+
+  writer = editCont.append('div')
+    .attr('class', 'writer')
+    .on('click', -> d3.event.stopPropagation())
+
+  editor = writer.append('textarea')
+
+  writer.append('button')
+    .text('Close')
+    .on('click', closeWriter)
+
+  return
+
+# makeWriter('5_5', 100)
 
 hideLoading = ->
   d3.select('.loading-cont')
@@ -242,7 +309,7 @@ if window.io
     console.log 'DRAWERS!', dr
     for k,v of dr
       drawerState[k] = v or { open: false, cards: [] }
-    update_drawers()
+    updateDrawers()
     hideLoading()
     return
 
@@ -251,17 +318,17 @@ if window.io
     for d in drawers
       if d is drawer
         drawerState[d] = state
-        update_drawers()
+        updateDrawers()
         return
     return
 
   socket.on 'reset', ->
     console.log 'GOT reset'
     resetDrawerState()
-    update_drawers()
+    updateDrawers()
     return
 
-  notify_change = (d) ->
+  notifyChange = (d) ->
     socket.emit('drawerChange', d, drawerState[d])
     return
 else
@@ -271,5 +338,7 @@ else
     d.cards = if Math.random() > 0.85 then [msgs[Math.floor(Math.random() * msgs.length)]] else []
 
   hideLoading()
+
+  notifyChange = -> return
 
 
