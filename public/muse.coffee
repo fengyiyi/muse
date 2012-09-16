@@ -21,37 +21,6 @@ $totalOuterHeight = $totalInnerHeight + drawerHeight + gap*2;
 
 # --------------------------
 
-msgs = "
-Dear DC, It's all theatre, and some of it's bad, but I still love it. - Shira
------
-Dear D.C, I've been pretty serious with New York, but if one of your fine law firms gives me a job, I'm pretty sure I'd break up with her for you. Love, a frustrated 3L.
-Tho I will always love you, i don't have to like you right now.
------
-I have yet to experience another city who supports the arts with the same generosity. DC is my haven for the arts.
------
-Dear DC, you're the most kickass and most vibrant big town I've ever met. You have your own music, your own art culture, you have waterfronts and parks and rivers. There's more to you than just stately buildings filled with pretentious people, and I'm lucky to have grown up here and experienced the real dc. Best of all, you never make me feel like I'm alone, or just another number in a swarm of people on the street: you're a city that actually feels like a home. ALL my love, Lida
------
-Dear DC, thank you for letting me see your big blue sky on my way to work and during lunch. And giving me access to free education in the Smithsonian institutes. I hope to bring my children to see your beautiful museums and exhibits. One day, I will leave you to return to my home city. But I will always remember you and your sky.
------
-Dear DC, We should have gotten to know each other when we had the chance. My friend thinks you're really great. Love Gabi
------
-Dear DC, I've loved you from afar all these years. I'm looking forward to getting to know you better. Love, Becca
------
-The monuments inspire me to think of the founding principles that make our country great. They give me hope that we can remember who we are as a nation.
------
-Dear DC, I love standing next to Lincoln and looking up at a giant for democracy and freedom
------
-Hey DC, thanks for the clean ride… I like your metro
------
-Dear DC, I love you for fostering a surprising intelligent community of artists!
------
-To the District of Columbia - thank you for your hidden gardens in Georgetown
------
-In 2002, I walked for the Homeless in DC, it's the one place I felt I made a difference.
-"
-
-msgs = msgs.split('-----')
-
 drawers = []
 drawerPos = {}
 for ix in [0...number]
@@ -191,27 +160,32 @@ drawerClassFn = (d) ->
   ].join(' ')
 
 myDrawer = null
-box_click = (d) ->
-  if myDrawer
-    drawerState[myDrawer].open = false
-    notifyChange(myDrawer)
+drawerClick = (d) ->
+  return if drawerState[d].open
 
-  if myDrawer is d
-    myDrawer = null
-    #drawerChest.attr('class', "drawer-chest")
-  else
-    myDrawer = d
-    #drawerChest.attr('class', "drawer-chest focus focus-x#{d.ix}y#{d.iy}")
-    drawerState[d].open = true
-    if drawerState[d].open and drawerState[d].cards.length is 0
-      drawerState[d].cards.push('')
+  drawerClaim d, (res) ->
+    console.log 'claim result:', res
+    return unless res is 'OK'
 
-    if drawerState[d].open
+    if myDrawer
+      drawerState[myDrawer].open = false
+      notifyChange(myDrawer)
+
+    if myDrawer is d
+      myDrawer = null
+      #drawerChest.attr('class', "drawer-chest")
+    else
+      myDrawer = d
+      #drawerChest.attr('class', "drawer-chest focus focus-x#{d.ix}y#{d.iy}")
+      drawerState[d].open = true
+      if drawerState[d].cards.length is 0
+        drawerState[d].cards.push('')
+
       makeWriter(d)
+      notifyChange(d)
 
-    notifyChange(d)
-
-  updateDrawers()
+    updateDrawers()
+    return
   return
 
 drawerChest.selectAll('div.drawer').data(drawers)
@@ -219,7 +193,7 @@ drawerChest.selectAll('div.drawer').data(drawers)
   .attr('class', drawerClassFn)
   .style('left', (d) -> drawerPos[d].x + 'px')
   .style('top',  (d) -> drawerPos[d].y + 'px')
-  .on('click', box_click)
+  .on('click', drawerClick)
   .call(make_box)
 
 updateDrawers = ->
@@ -235,23 +209,25 @@ do ->
   writerDrawer = null
   makeWriter = (drawer, delay = 2000) ->
     setTimeout((->
-      editCont.style('display', null)
-      writerDrawer = drawer
-      editor.property('value', drawerState[writerDrawer].cards[0])
-      writer
-        .style('left', (d) -> drawerPos[writerDrawer].x + 'px')
-        .style('top',  (d) -> (drawerPos[writerDrawer].y - drawerHeight) + 'px')
-        .style('width', drawerWidth + 'px')
-        .style('height', drawerHeight + 'px')
-        .style('border-radius', '0px')
-        .transition()
-          .duration(1000)
-          .delay(500)
-          .style('left', ($totalOuterWidth - writerWidth)/2 + 'px')
-          .style('top',  ($totalOuterHeight - writerHeight)/2 + 'px')
-          .style('width', writerWidth + 'px')
-          .style('height', writerHeight + 'px')
-          .style('border-radius', '3px')
+      makeCard '', ->
+        editCont.style('display', null)
+        writerDrawer = drawer
+        editor.property('value', drawerState[writerDrawer].cards[0])
+        writer
+          .style('left', (d) -> drawerPos[writerDrawer].x + 'px')
+          .style('top',  (d) -> (drawerPos[writerDrawer].y - drawerHeight) + 'px')
+          .style('width', drawerWidth + 'px')
+          .style('height', drawerHeight + 'px')
+          .style('border-radius', '0px')
+          .transition()
+            .duration(1000)
+            .delay(500)
+            .style('left', ($totalOuterWidth - writerWidth)/2 + 'px')
+            .style('top',  ($totalOuterHeight - writerHeight)/2 + 'px')
+            .style('width', writerWidth + 'px')
+            .style('height', writerHeight + 'px')
+            .style('border-radius', '3px')
+        return
     ), delay)
     return
 
@@ -296,49 +272,124 @@ hideLoading = ->
 # -------------------------------------------------------
 # -------------------------------------------------------
 
-if window.io
-  console.log 'IO detected'
+drawerClaim = (d, cb) -> setTimeout(cb, 1, 'OK')
+makeCard = (text, cb) -> setTimeout(cb, 1, 'OK')
+notifyChange = -> return
+do ->
+  if window.io
+    console.log 'IO detected'
 
-  socket = io.connect()
+    socket = io.connect()
 
-  socket.on 'connect', ->
-    socket.emit('addClient', 'dc')
-    return
+    socket.on 'connect', ->
+      socket.emit('register', 'DC')
+      return
 
-  socket.on 'updateDrawers', (dr) ->
-    console.log 'DRAWERS!', dr
-    for k,v of dr
-      drawerState[k] = v or { open: false, cards: [] }
-    updateDrawers()
-    hideLoading()
-    return
+    socket.on 'drawerInfo', (dr) ->
+      console.log 'DRAWER INFO:', dr
+      for ix in [0...number]
+        for iy in [0...number]
+          id = "#{ix}_#{iy}"
+          drawerState[id] = {
+            cards: dr[id]?.cards or []
+            open:  dr[id]?.claimed or false
+          }
+      updateDrawers()
+      hideLoading()
+      return
 
-  socket.on 'drawerChange', (drawer, state) ->
-    console.log 'GOT drawerChange', drawer
-    for d in drawers
-      if d is drawer
-        drawerState[d] = state
-        updateDrawers()
+    socket.on 'putCard', (drawer, card) ->
+      return unless drawer.match(/^\d+_\d+$/)
+      console.log 'GOT putCard', drawer, card
+      drawerState[drawer].cards.unshift(card)
+      updateDrawers()
+      return
+
+    socket.on 'drawerClaim', (drawer) ->
+      return unless drawer.match(/^\d+_\d+$/)
+      drawerState[drawer].open = true
+      return
+
+    socket.on 'drawerUnclaim', (drawer) ->
+      return unless drawer.match(/^\d+_\d+$/)
+      drawerState[drawer].open = false
+      return
+
+    socket.on 'reset', ->
+      console.log 'GOT reset'
+      resetDrawerState()
+      updateDrawers()
+      return
+
+    do ->
+      callback = null
+      socket.on 'drawerClaimResult', (res) ->
+        callback?(res)
+        callback = null
         return
-    return
 
-  socket.on 'reset', ->
-    console.log 'GOT reset'
-    resetDrawerState()
-    updateDrawers()
-    return
+      drawerClaim = (d, cb) ->
+        callback = cb
+        socket.emit 'drawerClaim', d
+        return
 
-  notifyChange = (d) ->
-    socket.emit('drawerChange', d, drawerState[d])
-    return
-else
-  console.log 'IO not detected :-('
+    do ->
+      callback = null
+      socket.on 'makeCardResult', (res) ->
+        callback?(res)
+        callback = null
+        return
 
-  for d in drawers
-    d.cards = if Math.random() > 0.85 then [msgs[Math.floor(Math.random() * msgs.length)]] else []
+      makeCard = (text, cb) ->
+        callback = cb
+        socket.emit 'makeCard', text
+        return
 
-  hideLoading()
+    notifyChange = (d) ->
+      socket.emit('drawerChange', d, drawerState[d])
+      return
+  else
+    console.log 'IO not detected :-('
 
-  notifyChange = -> return
+    msgs = "
+Dear DC, It's all theatre, and some of it's bad, but I still love it. - Shira
+-----
+Dear D.C, I've been pretty serious with New York, but if one of your fine law firms gives me a job, I'm pretty sure I'd break up with her for you. Love, a frustrated 3L.
+Tho I will always love you, i don't have to like you right now.
+-----
+I have yet to experience another city who supports the arts with the same generosity. DC is my haven for the arts.
+-----
+Dear DC, you're the most kickass and most vibrant big town I've ever met. You have your own music, your own art culture, you have waterfronts and parks and rivers. There's more to you than just stately buildings filled with pretentious people, and I'm lucky to have grown up here and experienced the real dc. Best of all, you never make me feel like I'm alone, or just another number in a swarm of people on the street: you're a city that actually feels like a home. ALL my love, Lida
+-----
+Dear DC, thank you for letting me see your big blue sky on my way to work and during lunch. And giving me access to free education in the Smithsonian institutes. I hope to bring my children to see your beautiful museums and exhibits. One day, I will leave you to return to my home city. But I will always remember you and your sky.
+-----
+Dear DC, We should have gotten to know each other when we had the chance. My friend thinks you're really great. Love Gabi
+-----
+Dear DC, I've loved you from afar all these years. I'm looking forward to getting to know you better. Love, Becca
+-----
+The monuments inspire me to think of the founding principles that make our country great. They give me hope that we can remember who we are as a nation.
+-----
+Dear DC, I love standing next to Lincoln and looking up at a giant for democracy and freedom
+-----
+Hey DC, thanks for the clean ride… I like your metro
+-----
+Dear DC, I love you for fostering a surprising intelligent community of artists!
+-----
+To the District of Columbia - thank you for your hidden gardens in Georgetown
+-----
+In 2002, I walked for the Homeless in DC, it's the one place I felt I made a difference.
+"
+
+    msgs = msgs.split('-----')
+
+    for d in drawers
+      drawerState[d] = {
+        cards: if Math.random() > 0.85 then [msgs[Math.floor(Math.random() * msgs.length)]] else []
+        open: false
+      }
+
+    hideLoading()
+
+
 
 

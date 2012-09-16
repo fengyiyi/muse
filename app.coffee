@@ -5,40 +5,131 @@ fs = require('fs')
 
 LOCATION_DIR = 'store/'
 
-locationNames = ['dc']
+locationNames = ['DC']
 locations = {}
 
-# loader
-for locationName in locationNames
-  file = LOCATION_DIR + locationName + '.json'
-  json = fs.readFileSync file
-  try
-    json = JSON.parse(json)
-  catch e
-    json = {
-      dirty: false
-      lastChanged: new Date()
-      drawers: {}
+objMap = (obj, fn) ->
+  newObj = {}
+  for k, v of obj
+    newObj[k] = fn.call(obj, v, k)
+  return newObj
+
+simplify = (obj) ->
+  objType = typeof obj
+  if objType isnt 'object'
+    return obj
+  else
+    constructorName = obj.constructor.name
+    throw "Bad constructor name" unless constructorName
+
+    if obj.simple
+      simple = objMap(obj.simple(), simplify)
+      simple._c_ = constructorName
+      return simple
+
+    if constructorName is 'Date'
+      return {
+        _c_: constructorName
+        date: obj.toISOString()
+      }
+
+    if constructorName is 'Object'
+      return objMap(obj, simplify)
+
+    if constructorName is 'Array'
+      return {
+        _c_: constructorName
+        values: obj.map(simplify)
+      }
+
+    throw "Cound not handle #{obj.constructor.name}"
+
+unsimplify = (obj) ->
+  objType = typeof obj
+  if objType isnt 'object'
+    return obj
+  else
+    constructorName = obj._c_
+
+    if not constructorName?
+      return objMap(obj, unsimplify)
+
+    if constructorName is 'Date'
+      return new Date(obj.date)
+
+    if constructorName is 'Array'
+      return obj.values.map(unsimplify)
+
+    ctr = this[constructorName]
+    throw "unknown constructor name #{constructorName}"
+    delete obj._c_
+    return new ctr(objMap(obj, unsimplify))
+
+
+class Card
+  constructor: ({@text, @created}) ->
+    @created or= new Date()
+
+  simple: ->
+    return this
+
+class Drawer
+  constructor: ({cards} = {}) ->
+    cards ?= []
+    @cards = cards.map((c) -> new Card(c))
+    @claim = null
+    @semiCard = null
+
+  simple: ->
+    return {
+      cards: @cards
     }
 
-  locations[locationName] = json
+class Location
+  constructor: ({@name, lastChanged, drawers}) ->
+    @drawers = objMap(drawers, (d) -> new Drawer(d))
+    @lastChanged = new Date(lastChanged)
+    @dirty = false
+
+  makeDirty: -> @dirty = true
+  clearDirty: -> @dirty = false
+
+  simple: ->
+    return {
+      name: @name
+      drawers: @drawers
+      lastChanged: @lastChanged
+    }
+
+# loader
+locationNames.forEach (locationName) ->
+  file = LOCATION_DIR + locationName + '.json'
+  try
+    location = unsimplify(JSON.parse(fs.readFileSync(file)))
+  catch e
+    location = new Location({
+      name: locationName
+      lastChanged: new Date()
+      drawers: {}
+    })
+
+  locations[locationName] = location
 
 # saver
 setInterval((->
-  for locationName in locationNames
-    do (locationName) ->
-      locationSpec = locations[locationName]
-      return unless locationSpec.dirty
-      file = LOCATION_DIR + locationName + '.json'
-      data = JSON.stringify(locationSpec, null, 2)
-      fs.writeFile file, data, (err) ->
-        if err
-          console.error("There was an error writing the file [#{file}]", err)
-        else
-          console.log('Location file saved')
-          locationSpec.dirty = false
-        return
+  locationNames.forEach (locationName) ->
+    location = locations[locationName]
+    return unless location.dirty
+    file = LOCATION_DIR + location.name + '.json'
+    data = JSON.stringify(simplify(location), null, 2)
+    fs.writeFile file, data, (err) ->
+      if err
+        console.error("There was an error writing the file [#{file}]", err)
+      else
+        console.log('Location file saved')
+        location.clearDirty()
       return
+    return
   return
 ), 2000)
 
@@ -78,27 +169,58 @@ io = io.listen(app)
 app.listen(8181)
 
 io.sockets.on 'connection', (socket) ->
-  client = {}
+  client = {
+    claim: null
+  }
 
   # when the client emits 'adduser', this listens and executes
-  socket.on 'addClient', (locationStr) ->
-    client.location = locationStr
-    location = locations[client.location]
+  socket.on 'register', (locationName) ->
+    location = locations[locationName]
+    return unless location
 
     # send client to location
-    socket.join(client.location)
+    socket.join(client.locationName = location.name)
 
     # echo to client they've connected
-    socket.emit('updateDrawers', location.drawers)
+    socket.emit('drawerInfo', location.drawers)
     return
 
-  socket.on 'drawerChange', (drawer, state) ->
-    location = locations[client.location]
-    location.drawers[drawer] = state
-    socket.broadcast.to(client.location).emit('drawerChange', drawer, state)
-    location.dirty = true
+  socket.on 'drawerClaim', (drawer) ->
+    location = locations[client.locationName]
+    if drawer.match(/^\d+_\d+$/) and location and (location.drawers[drawer] or= new Drawer()).claim is null
+      clinetUnclaim()
+      location.drawers[drawer].claim = client
+      client.claim = drawer
+      socket.emit('drawerClaimResult', 'OK')
+      socket.broadcast.to(location.name).emit('drawerClaim', drawer)
+    else
+      socket.emit('drawerClaimResult', 'FAIL')
     return
 
+  socket.on 'drawerUnclaim', clinetUnclaim = ->
+    drawer = client.claim
+    return unless drawer
+    location = locations[client.locationName]
+    return unless location
+    location.drawers[drawer].claim = null
+    client.claim = null
+    socket.broadcast.to(location.name).emit('drawerUnclaim', drawer)
+    return
+
+  socket.on 'makeCard', (text) ->
+    drawer = client.claim
+    location = locations[client.locationName]
+    if drawer and location
+      card = new Card({text})
+      location.drawers[drawer].cards.unshift(card)
+      socket.emit('makeCardResult', 'OK')
+      socket.broadcast.to(location.name).emit('putCard', drawer, card)
+      location.makeDirty()
+    else
+      socket.emit('makeCardResult', 'FAIL')
+    return
+
+  socket.on 'disconnect', clinetUnclaim
   return
 
 archive = ->
@@ -108,7 +230,7 @@ archive = ->
   io.sockets.emit('reset')
   return
 
-# cron job :-)
+# 'CRON' job :-)
 offset = -7 # PST
 getDate = -> (new Date(Date.now() + offset * 60 * 60 * 1000)).getUTCDate()
 lastDate = getDate()
