@@ -106,7 +106,7 @@
 
     function Drawer(_arg) {
       var cards;
-      cards = (_arg != null ? _arg : {}).cards;
+      this.id = _arg.id, cards = _arg.cards;
       if (cards == null) {
         cards = [];
       }
@@ -119,6 +119,7 @@
 
     Drawer.prototype.simple = function() {
       return {
+        id: this.id,
         cards: this.cards
       };
     };
@@ -226,7 +227,7 @@
   app.listen(8181);
 
   io.sockets.on('connection', function(socket) {
-    var client, clinetUnclaim;
+    var client, clinetUnclaim, foo;
     client = {
       claim: null
     };
@@ -239,47 +240,65 @@
       socket.join(client.locationName = location.name);
       socket.emit('drawerInfo', location.drawers);
     });
-    socket.on('drawerClaim', function(drawer) {
-      var location, _base;
+    foo = function(x) {
+      console.log('foo', x);
+      return x;
+    };
+    socket.on('drawerClaim', function(drawerId) {
+      var drawer, location, _base;
       location = locations[client.locationName];
-      if (drawer.match(/^\d+_\d+$/) && location && ((_base = location.drawers)[drawer] || (_base[drawer] = new Drawer())).claim === null) {
+      if (drawerId.match(/^\d+_\d+$/) && location && (drawer = ((_base = location.drawers)[drawerId] || (_base[drawerId] = new Drawer({
+        id: drawerId
+      })))).claim === null) {
         clinetUnclaim();
-        location.drawers[drawer].claim = client;
+        drawer.claim = client;
         client.claim = drawer;
         socket.emit('drawerClaimResult', 'OK');
-        socket.broadcast.to(location.name).emit('drawerClaim', drawer);
+        socket.broadcast.to(location.name).emit('drawerUpdate', drawer.id, Boolean(drawer.claim), simplify(drawer.cards));
       } else {
         socket.emit('drawerClaimResult', 'FAIL');
       }
     });
     socket.on('drawerUnclaim', clinetUnclaim = function() {
       var drawer, location;
-      drawer = client.claim;
-      if (!drawer) {
-        return;
-      }
       location = locations[client.locationName];
-      if (!location) {
-        return;
+      drawer = client.claim;
+      if (location && drawer) {
+        drawer.claim = null;
+        client.claim = null;
+        socket.broadcast.to(location.name).emit('drawerUnclaim', drawer);
+      } else {
+        null;
+
       }
-      location.drawers[drawer].claim = null;
-      client.claim = null;
-      socket.broadcast.to(location.name).emit('drawerUnclaim', drawer);
     });
     socket.on('makeCard', function(text) {
       var card, drawer, location;
-      drawer = client.claim;
       location = locations[client.locationName];
-      if (drawer && location) {
+      drawer = client.claim;
+      if (location && drawer) {
         card = new Card({
           text: text
         });
-        location.drawers[drawer].cards.unshift(card);
+        drawer.cards.unshift(card);
         socket.emit('makeCardResult', 'OK');
-        socket.broadcast.to(location.name).emit('putCard', drawer, card);
+        socket.broadcast.to(location.name).emit('drawerUpdate', drawer.id, Boolean(drawer.claim), simplify(drawer.cards));
         location.makeDirty();
       } else {
         socket.emit('makeCardResult', 'FAIL');
+      }
+    });
+    socket.on('updateCard', function(text) {
+      var card, drawer, location;
+      location = locations[client.locationName];
+      drawer = client.claim;
+      if (location && drawer && (card = drawer.cards[0])) {
+        card.text = text;
+        socket.emit('updateCardResult', 'OK');
+        socket.broadcast.to(location.name).emit('drawerUpdate', drawer.id, Boolean(drawer.claim), simplify(drawer.cards));
+        location.makeDirty();
+      } else {
+        socket.emit('updateCardResult', 'FAIL');
       }
     });
     socket.on('disconnect', clinetUnclaim);

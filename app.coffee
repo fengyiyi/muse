@@ -74,7 +74,7 @@ class Card
     return this
 
 class Drawer
-  constructor: ({cards} = {}) ->
+  constructor: ({@id, cards}) ->
     cards ?= []
     @cards = cards.map((c) -> new Card(c))
     @claim = null
@@ -82,6 +82,7 @@ class Drawer
 
   simple: ->
     return {
+      id: @id
       cards: @cards
     }
 
@@ -185,39 +186,58 @@ io.sockets.on 'connection', (socket) ->
     socket.emit('drawerInfo', location.drawers)
     return
 
-  socket.on 'drawerClaim', (drawer) ->
+  foo = (x) ->
+    console.log 'foo', x
+    return x
+
+  socket.on 'drawerClaim', (drawerId) ->
     location = locations[client.locationName]
-    if drawer.match(/^\d+_\d+$/) and location and (location.drawers[drawer] or= new Drawer()).claim is null
+    if drawerId.match(/^\d+_\d+$/) and
+          location and
+          (drawer = (location.drawers[drawerId] or= new Drawer({id: drawerId}))).claim is null
       clinetUnclaim()
-      location.drawers[drawer].claim = client
+      drawer.claim = client
       client.claim = drawer
       socket.emit('drawerClaimResult', 'OK')
-      socket.broadcast.to(location.name).emit('drawerClaim', drawer)
+      socket.broadcast.to(location.name).emit('drawerUpdate', drawer.id, Boolean(drawer.claim), simplify(drawer.cards))
     else
       socket.emit('drawerClaimResult', 'FAIL')
     return
 
   socket.on 'drawerUnclaim', clinetUnclaim = ->
-    drawer = client.claim
-    return unless drawer
     location = locations[client.locationName]
-    return unless location
-    location.drawers[drawer].claim = null
-    client.claim = null
-    socket.broadcast.to(location.name).emit('drawerUnclaim', drawer)
+    drawer = client.claim
+    if location and drawer
+      drawer.claim = null
+      client.claim = null
+      socket.broadcast.to(location.name).emit('drawerUnclaim', drawer)
+    else
+      null # ??
     return
 
   socket.on 'makeCard', (text) ->
-    drawer = client.claim
     location = locations[client.locationName]
-    if drawer and location
+    drawer = client.claim
+    if location and drawer
       card = new Card({text})
-      location.drawers[drawer].cards.unshift(card)
+      drawer.cards.unshift(card)
       socket.emit('makeCardResult', 'OK')
-      socket.broadcast.to(location.name).emit('putCard', drawer, card)
+      socket.broadcast.to(location.name).emit('drawerUpdate', drawer.id, Boolean(drawer.claim), simplify(drawer.cards))
       location.makeDirty()
     else
       socket.emit('makeCardResult', 'FAIL')
+    return
+
+  socket.on 'updateCard', (text) ->
+    location = locations[client.locationName]
+    drawer = client.claim
+    if location and drawer and card = drawer.cards[0]
+      card.text = text
+      socket.emit('updateCardResult', 'OK')
+      socket.broadcast.to(location.name).emit('drawerUpdate', drawer.id, Boolean(drawer.claim), simplify(drawer.cards))
+      location.makeDirty()
+    else
+      socket.emit('updateCardResult', 'FAIL')
     return
 
   socket.on 'disconnect', clinetUnclaim

@@ -90,7 +90,7 @@ make_box = (box) ->
 
 make_cards = (box) ->
   card = box.selectAll('div.card')
-    .data((d) -> if d then cross({card: drawerState[d].cards, pos:[drawerPos[d]]}) else [])
+    .data((d) -> if d then cross({card: drawerState[d].cards.map((c) -> c.text), pos:[drawerPos[d]]}) else [])
 
   animEnd = ->
     el = d3.select(this)
@@ -212,7 +212,7 @@ do ->
       makeCard '', ->
         editCont.style('display', null)
         writerDrawer = drawer
-        editor.property('value', drawerState[writerDrawer].cards[0])
+        editor.property('value', '')  # drawerState[writerDrawer].cards[0].text
         writer
           .style('left', (d) -> drawerPos[writerDrawer].x + 'px')
           .style('top',  (d) -> (drawerPos[writerDrawer].y - drawerHeight) + 'px')
@@ -227,6 +227,7 @@ do ->
             .style('width', writerWidth + 'px')
             .style('height', writerHeight + 'px')
             .style('border-radius', '3px')
+            .each('end', -> editor.node().focus())
         return
     ), delay)
     return
@@ -252,6 +253,12 @@ do ->
     .on('click', -> d3.event.stopPropagation())
 
   editor = writer.append('textarea')
+    .on('keyup', ->
+      updateCard editor.property('value'), (res) ->
+        console.log 'updateCardResult', res
+        return
+      return
+    )
 
   writer.append('button')
     .text('Close')
@@ -274,6 +281,7 @@ hideLoading = ->
 
 drawerClaim = (d, cb) -> setTimeout(cb, 1, 'OK')
 makeCard = (text, cb) -> setTimeout(cb, 1, 'OK')
+updateCard = (text, cb) -> setTimeout(cb, 1, 'OK')
 notifyChange = -> return
 do ->
   if window.io
@@ -298,12 +306,12 @@ do ->
       hideLoading()
       return
 
-    socket.on 'putCard', (drawer, card) ->
-      return unless drawer.match(/^\d+_\d+$/)
-      console.log 'GOT putCard', drawer, card
-      drawerState[drawer].cards.unshift(card)
-      updateDrawers()
-      return
+    # socket.on 'putCard', (drawer, card) ->
+    #   return unless drawer.match(/^\d+_\d+$/)
+    #   console.log 'GOT putCard', drawer, card
+    #   drawerState[drawer].cards.unshift(card)
+    #   updateDrawers()
+    #   return
 
     socket.on 'drawerClaim', (drawer) ->
       return unless drawer.match(/^\d+_\d+$/)
@@ -345,6 +353,18 @@ do ->
         socket.emit 'makeCard', text
         return
 
+    do ->
+      callback = null
+      socket.on 'updateCardResult', (res) ->
+        callback?(res)
+        callback = null
+        return
+
+      updateCard = (text, cb) ->
+        callback = cb
+        socket.emit 'updateCard', text
+        return
+
     notifyChange = (d) ->
       socket.emit('drawerChange', d, drawerState[d])
       return
@@ -384,7 +404,7 @@ In 2002, I walked for the Homeless in DC, it's the one place I felt I made a dif
 
     for d in drawers
       drawerState[d] = {
-        cards: if Math.random() > 0.85 then [msgs[Math.floor(Math.random() * msgs.length)]] else []
+        cards: if Math.random() > 0.85 then [{ text: msgs[Math.floor(Math.random() * msgs.length)] }] else []
         open: false
       }
 
